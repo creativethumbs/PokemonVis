@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <body>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="D3/d3.js"></script>
+<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
 //------Customization------
@@ -33,16 +34,15 @@ var name_array = [],
 var color = d3.scale.category20c()
     .domain(d3.range(m)); 
 
-var data = d3.csv("js/pokemondata.csv", function(d) {
-  name_array.push(d.Name),
-  type_array.push(d.Type1),
-  egg_array.push(d.Egg1),
+d3.csv("js/pokemondata.csv", function(d) {
+  name_array.push(d.Name);
+  type_array.push(d.Type1);
+  egg_array.push(d.Egg1);
   cluster_array.push(+d.Egg1num);
 
-}, 
-
-function(error, row) {
-  console.log("hello???");
+}, function(error, rows) { 
+  console.log(rows);
+  
   // The largest node for each cluster.
   var clusters = new Array(m);
   var nodes = d3.range(n).map(function(item, idx, array) {
@@ -61,16 +61,15 @@ function(error, row) {
   return d;
 });
 
-
-var node = svg.selectAll("circle")
-    .data(nodes)
-    .enter().append("circle")
-    .style("fill", function(d) { return color(d.cluster); })
-    .call(force.drag);
-
-
-
-//------Visualization physics-------
+// Use the pack layout to initialize node positions.
+d3.layout.pack()
+    .sort(null)
+    .size([width, height])
+    .children(function(d) { return d.values; })
+    .value(function(d) { return d.radius * d.radius; })
+    .nodes({values: d3.nest()
+      .key(function(d) { return d.cluster; })
+      .entries(nodes)});
 
 var force = d3.layout.force()
     .nodes(nodes)
@@ -83,6 +82,12 @@ var force = d3.layout.force()
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
+
+var node = svg.selectAll("circle")
+    .data(nodes)
+    .enter().append("circle")
+    .style("fill", function(d) { return color(d.cluster); })
+    .call(force.drag);
 
 node.transition()
     .duration(750)
@@ -146,7 +151,6 @@ function collide(alpha) {
     });
   };
 }
-
 });
 
 </script></body>
